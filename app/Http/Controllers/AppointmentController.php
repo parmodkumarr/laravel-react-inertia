@@ -45,11 +45,17 @@ class AppointmentController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        // Create Zoom meeting
-        $zoomMeeting = $this->zoomService->createMeeting(
-            'Medical Consultation',
-            $validated['appointment_date']
-        );
+        // Create Zoom meeting Old
+        // $zoomMeeting = $this->zoomService->createMeeting(
+        //     'Medical Consultation',
+        //     $validated['appointment_date']
+        // );
+
+        $zoomMeeting = $this->zoomService->createMeeting([
+                'topic' => $request->notes,
+                'start_time' => $request->appointment_date,
+                'duration' => 30,
+            ]);
 
         $appointment = Appointment::create([
             'user_id' => auth()->id(),

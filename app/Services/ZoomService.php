@@ -1,68 +1,70 @@
 <?php
 
+// app/Services/ZoomService.php
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Firebase\JWT\JWT;
 
 class ZoomService
 {
-    protected $apiKey;
-    protected $apiSecret;
-    protected $baseUrl = 'https://api.zoom.us/v2';
-
-    public function __construct()
+    public function getOAuthToken()
     {
-        $this->apiKey = config('services.zoom.api_key');
-        $this->apiSecret = config('services.zoom.api_secret');
+        try {
+            $response = Http::withHeaders([
+                'Host' => 'zoom.us',
+                'Authorization' => 'Basic ' . base64_encode(config('services.zoom.client_id') . ':' . config('services.zoom.client_secret')),
+            ])->asForm()->post('https://zoom.us/oauth/token', [
+                'grant_type' => 'account_credentials',
+                'account_id' => config('services.zoom.account_id'),
+            ]);
+
+            if ($response->failed()) {
+                $error = $response->json();
+                Log::error('Zoom OAuth Error', [
+                    'status' => $response->status(),
+                    'error' => $error,
+                ]);
+                throw new \Exception($error['reason'] ?? 'Failed to get OAuth token');
+            }
+
+            return $response->json()['access_token'];
+        } catch (\Exception $e) {
+            Log::error('Zoom OAuth Exception', ['error' => $e->getMessage()]);
+            throw $e;
+        }
     }
 
-    public function createMeeting($topic, $startTime, $duration = 30)
+    public function createMeeting(array $data)
     {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->generateJWT(),
-            'Content-Type' => 'application/json',
-        ])->post($this->baseUrl . '/users/me/meetings', [
-            'topic' => $topic,
-            'type' => 2, // Scheduled meeting
-            'start_time' => $startTime,
-            'duration' => $duration,
-            'settings' => [
-                'host_video' => true,
-                'participant_video' => true,
-                'join_before_host' => false,
-                'mute_upon_entry' => true,
-                'waiting_room' => true,
-            ],
-        ]);
+        $token = $this->getOAuthToken();
+
+        $response = Http::withToken($token)
+            ->post('https://api.zoom.us/v2/users/me/meetings', [
+                'topic' => $data['topic'] ?? 'New Meeting',
+                'type' => 2, // Scheduled meeting
+                'start_time' => $this->formatZoomTime($data['start_time'] ?? now()->addHour()),
+                'duration' => $data['duration'] ?? 60,
+                'timezone' => config('app.timezone'),
+                'settings' => [
+                    'host_video' => $data['host_video'] ?? true,
+                    'participant_video' => $data['participant_video'] ?? true,
+                    'join_before_host' => false,
+                    'waiting_room' => true,
+                ]
+            ]);
 
         if ($response->failed()) {
-            Log::error('Zoom API Error:', [
-                'status' => $response->status(),
-                'body' => $response->json(),
-            ]);
-            throw new \Exception('Failed to create Zoom meeting: ' . $response->body());
+            throw new \Exception('Failed to create meeting: ' . $response->body());
         }
 
         return $response->json();
     }
 
-    protected function generateJWT()
+    protected function formatZoomTime($time)
     {
-        $payload = [
-            'iss' => $this->apiKey,
-            'exp' => time() + 3600,
-        ];
-
-        try {
-            return JWT::encode($payload, $this->apiSecret, 'HS256');
-        } catch (\Exception $e) {
-            Log::error('JWT Generation Error:', [
-                'error' => $e->getMessage(),
-                'payload' => $payload
-            ]);
-            throw $e;
-        }
+        return $time instanceof \DateTimeInterface
+            ? $time->format('Y-m-d\TH:i:s')
+            : now()->addHour()->format('Y-m-d\TH:i:s');
     }
 }
