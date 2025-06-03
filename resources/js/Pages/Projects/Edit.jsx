@@ -3,7 +3,7 @@ import { useForm } from '@inertiajs/inertia-react';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import AppLayout from '@/Layouts/AppLayout';
+import MainLayout from '@/Layouts/MainLayout';
 
 const ProjectsEdit = ({ project }) => {
   const { data, setData, put, processing, errors } = useForm({
@@ -17,7 +17,7 @@ const ProjectsEdit = ({ project }) => {
   };
 
   return (
-    <AppLayout>
+    <MainLayout>
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -61,7 +61,7 @@ const ProjectsEdit = ({ project }) => {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </MainLayout>
   );
 };
 

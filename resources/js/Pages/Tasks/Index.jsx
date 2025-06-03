@@ -4,7 +4,7 @@ import { useForm } from '@inertiajs/inertia-react';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SelectInput from '@/Components/SelectInput';
-import AppLayout from '@/Layouts/AppLayout';
+import MainLayout from '@/Layouts/MainLayout';
 
 const TasksIndex = ({ tasks, users, flash }) => {
   const [selectedTask, setSelectedTask] = useState(null);
@@ -29,7 +29,7 @@ const TasksIndex = ({ tasks, users, flash }) => {
   };
 
   return (
-    <AppLayout>
+    <MainLayout>
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           {flash?.success && (
@@ -123,7 +123,7 @@ const TasksIndex = ({ tasks, users, flash }) => {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </MainLayout>
   );
 };
 

@@ -3,7 +3,7 @@ import { useForm } from '@inertiajs/inertia-react';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import AppLayout from '@/Layouts/AppLayout';
+import MainLayout from '@/Layouts/MainLayout';
 
 const TasksCreate = ({ projects }) => {
   const { data, setData, post, processing, errors } = useForm({
@@ -18,7 +18,7 @@ const TasksCreate = ({ projects }) => {
   };
 
   return (
-    <AppLayout>
+    <MainLayout>
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -82,7 +82,7 @@ const TasksCreate = ({ projects }) => {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </MainLayout>
   );
 };
 
