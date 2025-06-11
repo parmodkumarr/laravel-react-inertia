@@ -1,7 +1,16 @@
-import React from 'react';
-import { Link } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Link, usePage } from '@inertiajs/react';
+import { Inertia } from '@inertiajs/inertia';
 
 const Header = ({ onMenuClick }) => {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const { auth } = usePage().props;
+
+    const handleLogout = (e) => {
+        e.preventDefault();
+        Inertia.post(route('logout'));
+    };
+
     return (
         <header className="bg-white shadow-sm sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16">
@@ -38,7 +47,7 @@ const Header = ({ onMenuClick }) => {
                     </div>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden lg:flex lg:items-center lg:space-x-8">
+                    {/* <nav className="hidden lg:flex lg:items-center lg:space-x-8">
                         <Link
                             href="/dashboard"
                             className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
@@ -51,29 +60,36 @@ const Header = ({ onMenuClick }) => {
                         >
                             Profile
                         </Link>
-                    </nav>
+                    </nav> */}
 
-                    {/* Mobile User Menu */}
-                    <div className="flex items-center lg:hidden">
-                        <Link
-                            href="/profile"
-                            className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    {/* User Dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                            className="flex items-center text-sm focus:outline-none"
                         >
-                            <svg
-                                className="h-6 w-6"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                />
-                            </svg>
-                        </Link>
+                            <img
+                                className="h-8 w-8 rounded-full object-cover"
+                                src={`https://ui-avatars.com/api/?name=${auth.user.name}`}
+                                alt={auth.user.name}
+                            />
+                        </button>
+                        {dropdownOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg py-1 z-50">
+                                <Link
+                                    href="/profile"
+                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                    Profile
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -81,4 +97,4 @@ const Header = ({ onMenuClick }) => {
     );
 };
 
-export default Header; 
+export default Header;

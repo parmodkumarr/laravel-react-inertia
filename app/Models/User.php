@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'otp_code',
+        'otp_expires_at',
+        'otp_verified',
     ];
 
     /**
@@ -31,6 +34,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'otp_code',
     ];
 
     /**
@@ -43,6 +47,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'otp_expires_at' => 'datetime',
+            'otp_verified' => 'boolean',
         ];
     }
 
@@ -54,5 +60,44 @@ class User extends Authenticatable
     public function tasks()
     {
         return $this->belongsToMany(Task::class);
+    }
+
+    public function generateOtp(): string
+    {
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        
+        $this->update([
+            'otp_code' => $code,
+            'otp_expires_at' => now()->addMinutes(10),
+            'otp_verified' => false,
+        ]);
+
+        return $code;
+    }
+
+    public function verifyOtp(string $code): bool
+    {
+        if ($this->otp_code === $code && 
+            $this->otp_expires_at->isFuture() && 
+            !$this->otp_verified) {
+            
+            $this->update([
+                'otp_verified' => true,
+                'otp_code' => null,
+                'otp_expires_at' => null,
+            ]);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function hasValidOtp(): bool
+    {
+        return !$this->otp_verified && 
+               $this->otp_code !== null && 
+               $this->otp_expires_at !== null && 
+               $this->otp_expires_at->isFuture();
     }
 }
